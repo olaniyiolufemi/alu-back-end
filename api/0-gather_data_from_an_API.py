@@ -13,23 +13,21 @@ def main():
 
     response = requests.get(todo_url)
 
-    total_questions = 0
-    completed = []
+    total_tasks = 0
+    completed_tasks = []
+    all_tasks = []
     for todo in response.json():
-
         if todo['userId'] == user_id:
-            total_questions += 1
-
+            total_tasks += 1
+            all_tasks.append(todo['title'])
             if todo['completed']:
-                completed.append(todo['title'])
+                completed_tasks.append(todo['title'])
 
     user_name = requests.get(user_url).json()['name']
 
-    printer = ("Employee {} is done with tasks({}/{}):".format(user_name,
-               len(completed), total_questions))
-    print(printer)
-    for q in completed:
-        print("\t {}".format(q))
+    print("Employee {} has completed {}/{} tasks:".format(user_name, len(completed_tasks), total_tasks))
+    for task in all_tasks:
+        print("\t {}".format(task))
 
 
 if __name__ == '__main__':
