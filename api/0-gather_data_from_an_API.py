@@ -1,45 +1,39 @@
-#!/usr/bin/python3
-"""
-    Given employee ID, returns information about his/her TODO list progress.
-"""
+if __name__ == "__main__":
+    import json
+    import sys
+    import urllib.request
 
-
-import requests
-import sys
-
-base_url = 'https://jsonplaceholder.typicode.com/'
-
-
-def do_request():
-    '''Performs request'''
-    if len(sys.argv) < 2:
-        return print('USAGE:', __file__, '<employee id>')
-    eid = sys.argv[1]
-    try:
-        _eid = int(sys.argv[1])
-    except ValueError:
-        return print('Employee id must be an integer')
-
-    response = requests.get(base_url + 'users/' + eid)
-    if response.status_code == 404:
-        return print('User id not found')
-    elif response.status_code != 200:
-        return print('Error: status_code:', response.status_code)
-    user = response.json()
-
-    response = requests.get(base_url + 'todos/')
-    if response.status_code != 200:
-        return print('Error: status_code:', response.status_code)
-    todos = response.json()
-
-    user_todos = [todo for todo in todos
-                  if todo.get('userId') == user.get('id')]
-    completed = [todo for todo in user_todos if todo.get('completed')]
-    print('Employee', user.get('name'),
-          'is done with tasks({}/{}):'.
-          format(len(completed), len(user_todos)))
-    [print('\t', todo.get('title')) for todo in completed]
-
-
-if __name__ == '__main__':
-    do_request()
+    """
+    format the employees id with the url
+    https://jsonplaceholder.typicode.com/users/{employees_id}
+    after getting it from the command line using the sys module
+    """
+    employee_id = sys.argv[1]
+    url1 = f"https://jsonplaceholder.typicode.com/users/{employee_id}/todos"
+    url2 = f"https://jsonplaceholder.typicode.com/users/{employee_id}/"
+    # create a request objects at first using urllib.request.Request()
+    req_object1 = urllib.request.Request(url1, method="GET")
+    req_object2 = urllib.request.Request(url2, method="GET")
+    # fetch the resources using the request objects and the function
+    # urllib.request.urlopen
+    with urllib.request.urlopen(req_object1) as response_object1:
+        response1 = json.load(response_object1)
+    with urllib.request.urlopen(req_object2) as response_object2:
+        response2 = json.load(response_object2)
+    # create an empty list to store completed tasks
+    completed_tasks = []
+    # iterate through all task to get task with boolean value true
+    for task in response1:
+        if task['completed'] is not True:
+            continue
+        completed_tasks.append(task)
+    # get length for completed task and all task (complete and incomplete)
+    no_of_comptasks = len(completed_tasks)
+    totalno_of_task = len(response1)
+    # get the employee name
+    employee_name = response2["name"]
+    # display the required format in the docs
+    print(f"Employee {employee_name} is done with tasks({no_of_comptasks}/\
+{totalno_of_task}):")
+    for comp_tasks in completed_tasks:
+        print(f"\t {comp_tasks['title']}")
