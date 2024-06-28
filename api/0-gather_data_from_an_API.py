@@ -1,40 +1,37 @@
+#!/usr/bin/python3
+"""Script to get todos for a user from API"""
+
 import requests
 import sys
 
-def get_employee_todo_progress(employee_id):
-    try:
-        # Fetch user information
-        user_url = f"https://jsonplaceholder.typicode.com/users/{employee_id}"
-        user_response = requests.get(user_url)
-        user_response.raise_for_status()
-        user_data = user_response.json()
 
-        # Fetch TODO list information
-        todos_url = f"https://jsonplaceholder.typicode.com/todos?userId={employee_id}"
-        todos_response = requests.get(todos_url)
-        todos_response.raise_for_status()
-        todos_data = todos_response.json()
+def main():
+    """main function"""
+    user_id = int(sys.argv[1])
+    todo_url = 'https://jsonplaceholder.typicode.com/todos'
+    user_url = 'https://jsonplaceholder.typicode.com/users/{}'.format(user_id)
 
-        # Extract required information
-        employee_name = user_data['name']
-        total_tasks = len(todos_data)
-        completed_tasks = [todo for todo in todos_data if todo['completed']]
-        number_of_done_tasks = len(completed_tasks)
+    response = requests.get(todo_url)
 
-        # Output the employee's TODO list progress
-        print(f"Employee {employee_name} is done with tasks({number_of_done_tasks}/{total_tasks}):")
-        for task in completed_tasks:
-            print(f"\t {task['title']}")
+    total_questions = 0
+    completed = []
+    for todo in response.json():
 
-    except requests.exceptions.RequestException as e:
-        print(f"Error: {e}")
+        if todo['userId'] == user_id:
+            total_questions += 1
 
-if __name__ == "__main__":
-    if len(sys.argv) != 2:
-        print("Usage: python script.py <employee_id>")
-    else:
-        try:
-            employee_id = int(sys.argv[1])
-            get_employee_todo_progress(employee_id)
-        except ValueError:
-            print("Please provide a valid integer as the employee ID.")
+            if todo['completed']:
+                completed.append(todo['title'])
+
+    user_name = requests.get(user_url).json()['name']
+
+    printer = ("Employee {} is done with tasks({}/{}):".format(user_name,
+               len(completed), total_questions))
+    print(printer)
+    for q in completed:
+        print("\t {}".format(q))
+
+
+if __name__ == '__main__':
+    main()
+print('user_Id')
