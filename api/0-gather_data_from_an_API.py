@@ -1,47 +1,40 @@
-#!/usr/bin/python3
-"""Script to get todos for a user from API"""
-
 import requests
 import sys
 
-def main():
-    """main function"""
-    if len(sys.argv) != 2:
-        print("Usage: {} <user_id>".format(sys.argv[0]))
-        return
-
+def get_employee_todo_progress(employee_id):
     try:
-        user_id = int(sys.argv[1])
-    except ValueError:
-        print("User ID must be an integer.")
-        return
+        # Fetch user information
+        user_url = f"https://jsonplaceholder.typicode.com/users/{employee_id}"
+        user_response = requests.get(user_url)
+        user_response.raise_for_status()
+        user_data = user_response.json()
 
-    todo_url = 'https://jsonplaceholder.typicode.com/todos'
-    user_url = 'https://jsonplaceholder.typicode.com/users/{}'.format(user_id)
+        # Fetch TODO list information
+        todos_url = f"https://jsonplaceholder.typicode.com/todos?userId={employee_id}"
+        todos_response = requests.get(todos_url)
+        todos_response.raise_for_status()
+        todos_data = todos_response.json()
 
-    response = requests.get(todo_url)
-    if response.status_code != 200:
-        print("Failed to fetch todos.")
-        return
+        # Extract required information
+        employee_name = user_data['name']
+        total_tasks = len(todos_data)
+        completed_tasks = [todo for todo in todos_data if todo['completed']]
+        number_of_done_tasks = len(completed_tasks)
 
-    total_questions = 0
-    completed = []
-    for todo in response.json():
-        if todo['userId'] == user_id:
-            total_questions += 1
-            if todo['completed']:
-                completed.append(todo['title'])
+        # Output the employee's TODO list progress
+        print(f"Employee {employee_name} is done with tasks({number_of_done_tasks}/{total_tasks}):")
+        for task in completed_tasks:
+            print(f"\t {task['title']}")
 
-    user_response = requests.get(user_url)
-    if user_response.status_code != 200:
-        print("Failed to fetch user details.")
-        return
+    except requests.exceptions.RequestException as e:
+        print(f"Error: {e}")
 
-    user_name = user_response.json().get('name', 'Unknown')
-
-    print("Employee {} is done with tasks({}/{}):".format(user_name, len(completed), total_questions))
-    for task in completed:
-        print("\t {}".format(task))
-
-if __name__ == '__main__':
-    main()
+if __name__ == "__main__":
+    if len(sys.argv) != 2:
+        print("Usage: python script.py <employee_id>")
+    else:
+        try:
+            employee_id = int(sys.argv[1])
+            get_employee_todo_progress(employee_id)
+        except ValueError:
+            print("Please provide a valid integer as the employee ID.")
