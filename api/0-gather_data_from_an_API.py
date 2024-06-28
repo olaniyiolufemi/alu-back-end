@@ -7,7 +7,17 @@ import sys
 
 def main():
     """main function"""
-    user_id = int(sys.argv[user_id])
+    # Ensure there is at least one argument passed
+    if len(sys.argv) < 2:
+        print("Usage: {} <user_id>".format(sys.argv[0]))
+        sys.exit(1)
+
+    try:
+        user_id = int(sys.argv[1])
+    except ValueError:
+        print("The user_id should be an integer.")
+        sys.exit(1)
+
     todo_url = 'https://jsonplaceholder.typicode.com/todos'
     user_url = 'https://jsonplaceholder.typicode.com/users/{}'.format(user_id)
 
@@ -16,14 +26,16 @@ def main():
     total_questions = 0
     completed = []
     for todo in response.json():
-
         if todo['userId'] == user_id:
             total_questions += 1
-
             if todo['completed']:
                 completed.append(todo['title'])
 
-    user_name = requests.get(user_url).json()['name']
+    user_response = requests.get(user_url)
+    if user_response.status_code == 404:
+        print("User not found.")
+        sys.exit(1)
+    user_name = user_response.json()['name']
 
     printer = ("Employee {} is done with tasks({}/{}):".format(user_name,
                len(completed), total_questions))
@@ -34,4 +46,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-print('user_Id')
